@@ -93,11 +93,6 @@ def compare_five_conditions(baseline_folder, dlm_500_folder, dlm_50_folder, dlm_
 
 
 def box_plots(df, output_dir="analysis_plots_box"):
-    import os
-    import numpy as np
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    import seaborn as sns
 
     os.makedirs(output_dir, exist_ok=True)
 
