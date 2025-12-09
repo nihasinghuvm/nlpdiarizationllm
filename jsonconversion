@@ -1,0 +1,85 @@
+import os
+import json
+import glob
+
+def save_transcript_style_from_json(json_folder, output_folder="speaker_transcripts"):
+    """
+    Creates transcript-style text files from JSON:
+    - Each JSON file generates two files: hyp and ref
+    - Alternating speaker lines like:
+        Speaker 1: words...
+        Speaker 2: words...
+    """
+    os.makedirs(output_folder, exist_ok=True)
+    json_files = glob.glob(os.path.join(json_folder, "*.json"))
+
+    for json_file in json_files:
+        try:
+            with open(json_file, "r") as f:
+                data = json.load(f)
+
+            base_name = os.path.splitext(os.path.basename(json_file))[0]
+
+            # --- Process hyp_text ---
+            hyp_lines = []
+            for utt in data.get("utterances", []):
+                hyp_text = utt.get("hyp_text", "").split()
+                hyp_spk = utt.get("hyp_spk", "").split()
+
+                if not hyp_text or not hyp_spk:
+                    continue
+
+                current_speaker = hyp_spk[0]
+                words = []
+
+                for word, spk in zip(hyp_text, hyp_spk):
+                    if spk == current_speaker:
+                        words.append(word)
+                    else:
+                        hyp_lines.append(f"Speaker {current_speaker}: {' '.join(words)}")
+                        current_speaker = spk
+                        words = [word]
+
+                # Add the last segment
+                if words:
+                    hyp_lines.append(f"Speaker {current_speaker}: {' '.join(words)}")
+
+            with open(os.path.join(output_folder, f"{base_name}_hyp.txt"), "w") as f:
+                f.write("\n".join(hyp_lines))
+
+            # --- Process ref_text ---
+            ref_lines = []
+            for utt in data.get("utterances", []):
+                ref_text = utt.get("ref_text", "").split()
+                ref_spk = utt.get("ref_spk", "").split()
+
+                if not ref_text or not ref_spk:
+                    continue
+
+                current_speaker = ref_spk[0]
+                words = []
+
+                for word, spk in zip(ref_text, ref_spk):
+                    if spk == current_speaker:
+                        words.append(word)
+                    else:
+                        ref_lines.append(f"Speaker {current_speaker}: {' '.join(words)}")
+                        current_speaker = spk
+                        words = [word]
+
+                # Add the last segment
+                if words:
+                    ref_lines.append(f"Speaker {current_speaker}: {' '.join(words)}")
+
+            with open(os.path.join(output_folder, f"{base_name}_ref.txt"), "w") as f:
+                f.write("\n".join(ref_lines))
+
+            print(f"Processed {json_file} ✓")
+
+        except Exception as e:
+            print(f"Error processing {json_file}: {e}")
+
+
+if __name__ == "__main__":
+    json_folder = "/Users/nsingh8/Documents/projects/DiarizationLM/json_output_dlm_adaptive"  # Change to your JSON folder
+    save_transcript_style_from_json(json_folder)
