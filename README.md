@@ -1,0 +1,1 @@
+The JSON Baseline contains all word-by-word speaker label. Use this on diarizationlm.ipynb file and use different chunck size to get json_ouput_{chunk_size}. The adaptive json folder changes chunk size by turn + 5 overlapping words but we only use the overlapped speaker label used in the latter prompt. 
