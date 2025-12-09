@@ -93,25 +93,39 @@ def compare_five_conditions(baseline_folder, dlm_500_folder, dlm_50_folder, dlm_
 
 
 def box_plots(df, output_dir="analysis_plots_box"):
+    import os
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     os.makedirs(output_dir, exist_ok=True)
 
     metrics = ["WDER", "cpWER"]
     conditions = ["baseline", "dlm_500", "dlm_50", "dlm_20", "dlm_adapt"]
 
     for metric in metrics:
+        # Prepare data in long format
         melted = pd.DataFrame({
             "Condition": np.repeat(conditions, len(df)),
             metric: np.concatenate([df[f"{metric}_{c}"].values for c in conditions])
         })
 
         plt.figure(figsize=(12, 7))
-        sns.boxplot(data=melted, x="Condition", y=metric, palette="husl")
-        sns.swarmplot(data=melted, x="Condition", y=metric, color="black", alpha=0.6)
+        sns.boxplot(
+            data=melted,
+            x="Condition",
+            y=metric,
+            palette="husl",
+            whis=[0, 100],  # whiskers span min to max
+            linewidth=2
+        )
 
         plt.title(f"{metric} — Box Plot", fontsize=20, fontweight="bold")
         plt.tight_layout()
         plt.savefig(os.path.join(output_dir, f"box_{metric}.png"), dpi=300)
         plt.close()
+
 
 def p_to_stars(p):
     if p < 0.0001: return "****"
